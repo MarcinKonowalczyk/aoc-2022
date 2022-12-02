@@ -2,6 +2,8 @@ import std/strutils
 import std/sequtils
 import std/algorithm
 
+include utils
+
 # let filename = "./data/test/day01_input.txt";
 let filename = "./data/full/day01_input.txt";
 
@@ -14,8 +16,6 @@ for line in lines(filename):
         calories = @[];
     else:
         calories.add(line.parseInt)
-
-template sum[T](s: seq[T]): T = s.foldl(a + b)
 
 var snacks = map(elves, proc (x: seq[int]): int = x.sum).sorted;
 # pick last 3 elements
