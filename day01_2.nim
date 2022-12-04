@@ -1,5 +1,4 @@
 import std/strutils
-import std/sequtils
 import std/algorithm
 
 include utils
