@@ -1,53 +1,41 @@
 
 import std/strutils
+# import std/sets
+include utils
 
-# include utils
-
-let filename = "./data/test/day03_input.txt";
-# let filename = "./data/full/day03_input.txt";
+# let filename = "./data/test/day03_input.txt";
+let filename = "./data/full/day03_input.txt";
 
 
-# type
-#     play = enum
-#         rock, paper, scissors
+var backpacks: seq[array[2, string]] = @[];
+for line in lines(filename):
+    assert(len(line) mod 2 == 0)
+    
+    backpacks.add([
+        line[0..(len(line) div 2-1)],
+        line[len(line) div 2..len(line)-1],
+    ])
 
-# proc parseEnum(s: char): play =
-#     case s
-#     of 'A': rock
-#     of 'B': paper
-#     of 'C': scissors
-#     of 'X': rock
-#     of 'Y': paper
-#     of 'Z': scissors
-#     else: raise newException(ValueError, "Invalid play: " & s)
+var commons: seq[char] = @[];
+for backpack in backpacks:
+    let 
+        left = backpack[0]
+        right = backpack[1]
+    assert(len(left) == len(right))
+    var left_set, right_set: set[char]
+    for c in left: left_set.incl(c)
+    for c in right: right_set.incl(c)
+    var common = left_set * right_set
+    assert(len(common) == 1)
+    for v in common: commons.add(v)
 
-# var strategy: seq[array[2, play]] = @[]
-# for line in lines(filename):
-#     let parts = line.split(" ").map(proc (x: string): char = x[0]);
-#     strategy.add([parseEnum(parts[0]), parseEnum(parts[1])])
+proc calculate_score(item: char): int =
+    if ord(item) >= ord('a') and ord(item) <= ord('z'):
+        return ord(item) - ord('a') + 1
+    elif ord(item) >= ord('A') and ord(item) <= ord('Z'):
+        return ord(item) - ord('A') + 27
+    else:
+        raise newException(ValueError, "Invalid item: " & $item)
 
-# proc result(x,y: play): int =
-#     case x
-#     of rock:
-#         case y
-#         of rock: 3
-#         of paper: 6
-#         of scissors: 0
-#     of paper:
-#         case y
-#         of rock: 0
-#         of paper: 3
-#         of scissors: 6
-#     of scissors:
-#         case y
-#         of rock: 6
-#         of paper: 0
-#         of scissors: 3
-
-# let bonus: array[play, int] = [1,2,3]
-
-# var scores = seq[int](@[])
-# for game in strategy:
-#     scores.add(result(game[0], game[1]) + bonus[game[1]])
-
-# echo scores.sum
+let scores = commons.map(calculate_score)
+echo scores.sum
