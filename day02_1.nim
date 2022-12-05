@@ -1,7 +1,7 @@
 
 import std/strutils
-
-include utils
+import std/sequtils
+from utils import sum
 
 # let filename = "./data/test/day02_input.txt";
 let filename = "./data/full/day02_input.txt";
