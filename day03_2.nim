@@ -1,6 +1,5 @@
 
 import std/sequtils
-from utils import sum
 
 # let filename = "./data/test/day03_input.txt";
 let filename = "./data/full/day03_input.txt";
@@ -31,4 +30,4 @@ proc calculate_score(item: char): int =
         raise newException(ValueError, "Invalid item: " & $item)
 
 let scores = commons.map(calculate_score)
-echo scores.sum
+echo scores.foldl(a + b)

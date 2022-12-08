@@ -1,6 +1,5 @@
 import std/strutils
 import std/sequtils
-from utils import sum
 
 # let filename = "./data/test/day02_input.txt";
 let filename = "./data/full/day02_input.txt";
@@ -76,4 +75,4 @@ for game in games:
     scores.add(calcualte_result(game.play, play) + bonus[play])
 #     scores.add(result(game[0], game[1]) + bonus[game[1]])
 
-echo scores.sum
+echo scores.foldl(a + b)

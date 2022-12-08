@@ -1,6 +1,5 @@
 import std/strutils
 import std/sequtils
-from utils import sum
 
 # let filename = "./data/test/day07_input.txt";
 let filename = "./data/full/day07_input.txt";
@@ -118,4 +117,4 @@ proc findSmall(dir: Directory): seq[Directory] =
     for child in dir.directories:
         result = result.concat(findSmall(child))
 
-echo root.findSmall().map(proc (dir: Directory): int64 = dir.size).sum
+echo root.findSmall().map(proc (dir: Directory): int64 = dir.size).foldl(a + b)
