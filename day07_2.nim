@@ -112,10 +112,10 @@ const DISK_SPACE = 70000000
 const REQUIRED_SPACE = 30000000
 
 let free_space = DISK_SPACE - root.size
-echo "Free space: " & $free_space
+# echo "Free space: " & $free_space
 
 let needs_to_delete = REQUIRED_SPACE - free_space
-echo "Needs to delete: " & $needs_to_delete
+# echo "Needs to delete: " & $needs_to_delete
 
 
 proc toSeq(dir: Directory): seq[Directory] =

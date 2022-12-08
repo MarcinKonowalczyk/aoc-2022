@@ -13,9 +13,9 @@ for line in lines(filename):
         break;
 
 assert buffer != ""
-const state_len = 14
+const STATE_LEN = 14
 var state: Deque[char]
-for i in 0..<state_len:
+for i in 0..<STATE_LEN:
     assert(buffer[i] != '.')
     state.addFirst('.')
 
@@ -24,9 +24,9 @@ var index = 0;
 for i, c in buffer:
     state.addFirst(c)
     discard state.popLast()
-    assert state.len == state_len
+    assert state.len == STATE_LEN
     let state_set = state.toSeq.toHashSet
-    if state_set.len == state_len and i > 3:
+    if state_set.len == STATE_LEN and i > 3:
         index = i + 1
         break
 assert index > 0
