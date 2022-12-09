@@ -1,9 +1,17 @@
-# import std/strutils
-import std/sequtils
-# import std/random
+import os
 
-# let filename = "./data/test/day08_input.txt";
-let filename = "./data/full/day08_input.txt";
+if paramCount() != 1:
+    echo "Usage: ./day01 <input file>"
+    quit(1)
+let filename = paramStr(1)
+if not fileExists(filename):
+    echo "File not found: ", filename
+    quit(1)
+
+## RUN: TEST
+# RUN: FULL
+
+import std/sequtils
 
 type
     Matrix[T: untyped, W, H:int] = seq[seq[T]]

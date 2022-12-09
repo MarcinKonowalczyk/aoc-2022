@@ -1,8 +1,17 @@
+import os
+
+if paramCount() != 1:
+    echo "Usage: ./day01 <input file>"
+    quit(1)
+let filename = paramStr(1)
+if not fileExists(filename):
+    echo "File not found: ", filename
+    quit(1)
+
+## RUN: TEST
+# RUN: FULL
 
 import std/sequtils
-
-# let filename = "./data/test/day03_input.txt";
-let filename = "./data/full/day03_input.txt";
 
 var groups: seq[array[3, set[char]]] = @[];
 var group: array[3, set[char]];

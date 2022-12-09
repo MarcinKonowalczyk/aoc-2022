@@ -1,7 +1,17 @@
-import std/strutils
+import os
 
-# let filename = "./data/test/day04_input.txt";
-let filename = "./data/full/day04_input.txt";
+if paramCount() != 1:
+    echo "Usage: ./day01 <input file>"
+    quit(1)
+let filename = paramStr(1)
+if not fileExists(filename):
+    echo "File not found: ", filename
+    quit(1)
+
+## RUN: TEST
+# RUN: FULL
+
+import std/strutils
 
 proc biject_string*(s: string, d: char): tuple =
     let split = s.split(d);

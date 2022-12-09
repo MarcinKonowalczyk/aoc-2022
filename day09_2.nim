@@ -1,9 +1,19 @@
+import os
+
+if paramCount() != 1:
+    echo "Usage: ./day01 <input file>"
+    quit(1)
+let filename = paramStr(1)
+if not fileExists(filename):
+    echo "File not found: ", filename
+    quit(1)
+
+## RUN: TEST
+# RUN: FULL
+
 import std/strutils
 import std/sequtils
 import std/sets
-
-# let filename = "./data/test/day09_input.txt";
-let filename = "./data/full/day09_input.txt";
 
 type
     Direction = enum
@@ -128,7 +138,7 @@ for step in path:
         printPositions(head, links)
         echo ""
 
-# printPositions(head, links)
+printPositions(head, links)
 
 echo visited.len
     

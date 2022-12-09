@@ -1,8 +1,18 @@
+import os
+
+if paramCount() != 1:
+    echo "Usage: ./day01 <input file>"
+    quit(1)
+let filename = paramStr(1)
+if not fileExists(filename):
+    echo "File not found: ", filename
+    quit(1)
+
+## RUN: TEST
+# RUN: FULL
+
 import std/strutils
 import std/sequtils
-
-# let filename = "./data/test/day05_input.txt";
-let filename = "./data/full/day05_input.txt";
 
 let file: File = filename.open(fmRead);
 
