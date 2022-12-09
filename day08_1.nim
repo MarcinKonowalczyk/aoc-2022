@@ -1,9 +1,9 @@
 # import std/strutils
-# import std/sequtils
+import std/sequtils
 # import std/random
 
-let filename = "./data/test/day08_input.txt";
-# let filename = "./data/full/day08_input.txt";
+# let filename = "./data/test/day08_input.txt";
+let filename = "./data/full/day08_input.txt";
 
 type
     Matrix[T: untyped, W, H:int] = seq[seq[T]]
@@ -12,6 +12,9 @@ proc newMatrix[T](W, H: int): Matrix[T, W, H] =
     result.newSeq(H)
     for i in 0 ..< H:
         result[i].newSeq(W)
+
+proc rows[T: untyped, W, H:int](m: Matrix[T, W, H]): int = result = len(m)
+proc columns[T: untyped, W, H:int](m: Matrix[T, W, H]): int = result = len(m[0])
 
 proc `[]`[T: untyped, W, H:int](m: Matrix[T, W, H], x, y: int): T =
     m[y][x]
@@ -41,66 +44,72 @@ for hi, line in all_lines:
 
 var visible = newMatrix[bool](width, height)
 
-for row in forest:
-    echo row
-
 type
     Direction = enum
         up, down, left, right
 
+# https://stackoverflow.com/a/35697846/2531987
+template toClosure(it): auto = 
+    iterator j: type(it) = 
+        for i in it:
+            yield i
+    j
+
 proc visibilityCheck[W, H](forest: Matrix[uint8, W, H], visible: var Matrix[bool, W, H], direction: Direction) = 
     case direction:
     of up, down:
-
-        var f: proc(hi: int): int
-        if direction == up:
-            let N = len(forest) - 1
-            f = proc(hi: int): int = N - hi
+        
+        let counter = if direction == up:
+            toClosure(countdown(forest.rows-1, 0))
         else:
-            f = proc(hi: int): int = hi
+            toClosure(countup(0, forest.rows-1))
+        
+        let first = if direction == up: forest.rows-1 else: 0
 
-        for hi, row in forest:
-            if hi == 0:
-                for wi, _ in row:
-                    visible[wi, f(hi)] = true
-                continue
-            var found_visible = false
+        var highest: seq[uint8] = newSeq[uint8](forest.columns)
+        for hi in counter:
+            let row = forest[hi]
             for wi, tree in row:
-                if visible[wi, f(hi-1)]:
-                    if tree > forest[wi, f(hi-1)]:
-                        visible[wi, f(hi)] = true
-                        found_visible = true
-            if not found_visible:
-                break
+                if hi == first or tree > highest[wi]:
+                    visible[wi, hi] = true
+                    highest[wi] = tree
 
     of left, right:
-        var f: proc(wi: int): int
-        if direction == left:
-            let N = len(forest[0]) - 1
-            f = proc(wi: int): int = N - wi
-        else:
-            f = proc(wi: int): int = wi
 
-        for wi, _ in forest[0]:
-            if wi == 0:
-                for hi, _ in forest:
-                    visible[f(wi), hi] = true
-                continue
-            var found_visible = false
+        let counter = if direction == left:
+            toClosure(countdown(forest.columns-1, 0))
+        else:
+            toClosure(countup(0, forest.columns-1))
+
+        let first = if direction == left: forest.columns-1 else: 0
+
+        var highest: seq[uint8] = newSeq[uint8](forest.rows)
+        for wi in counter:
             for hi, row in forest:
-                if visible[f(wi-1), hi]:
-                    if row[f(wi)] > row[f(wi-1)]:
-                        visible[f(wi), hi] = true
-                        found_visible = true
+                let tree = row[wi]
+                if wi == first or tree > highest[hi]:
+                    visible[wi, hi] = true
+                    highest[hi] = tree
 
-for direction in [up, down]:
+for direction in [up, down, left, right]:
     visibilityCheck(forest, visible, direction)
-# visibilityCheck(forest, visible, up)
 
-for row in visible:
-    for tree in row:
-        if tree:
-            write(stdout, "#")
+# const PRINT = true
+const PRINT = false
+
+proc purple(s: string): string = "\e[1;34m" & s & "\e[0m"
+proc darkgray(s: string): string = "\e[0;30m" & s & "\e[0m"
+
+var total = 0
+for hi, row in forest:
+    for wi, tree in row:
+        let ts = $tree
+        if not visible[wi, hi]:
+            if PRINT: write(stdout, ts.purple)
         else:
-            write(stdout, ".")
-    write(stdout, "\n")
+            # total += int(tree)
+            total += 1
+            if PRINT: write(stdout, ts.darkgray)
+    if PRINT: write(stdout, "\n")
+
+echo total
