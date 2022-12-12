@@ -1,7 +1,7 @@
 import os
 
 if paramCount() != 1:
-    echo "Usage: ./day01 <input file>"
+    echo "Usage: ./dayXX <input file>"
     quit(1)
 let filename = paramStr(1)
 if not fileExists(filename):
