@@ -8,26 +8,23 @@ if not fileExists(filename):
     echo "File not found: ", filename
     quit(1)
 
-## RUN: FULL
-# RUN: TEST
+# RUN: FULL
+## RUN: TEST
 
 import strutils
 import sequtils
 import deques
 import algorithm
 
-import bigints
-
 type
-    OpFun = proc (x: BigInt): BigInt
-    TestFun = proc (x: BigInt): bool
+    OpFun = proc (x: uint): uint
 
     Monkey = object
-        items: Deque[BigInt]
+        items: Deque[uint]
         operation: OpFun
-        test: TestFun
-        true_index: int
-        false_index: int
+        test_mod: uint
+        true_index: uint
+        false_index: uint
     
     Op = enum
         plus, times
@@ -42,15 +39,15 @@ func parseOp(s: string): Op =
         raise newException(ValueError, "Unknown operation" & $s)
 
 func newMonkey(
-    items: Deque[BigInt],
+    items: Deque[uint],
     operation: OpFun,
-    test: TestFun,
-    true_index: int,
-    false_index: int
+    test_mod: uint,
+    true_index: uint,
+    false_index: uint
 ): Monkey =
     result.items = items
     result.operation = operation
-    result.test = test
+    result.test_mod = test_mod
     result.true_index = true_index
     result.false_index = false_index
 
@@ -77,7 +74,7 @@ try:
 
             line = readLine(file)
             assert test_line(line, SITEM_LINE)
-            let items = strip_line(line, SITEM_LINE).split(", ").mapIt(it.initBigInt).toDeque
+            let items = strip_line(line, SITEM_LINE).split(", ").map(parseUInt).toDeque
 
             line = readLine(file)
             assert test_line(line, OP_LINE)
@@ -89,51 +86,49 @@ try:
             if op_line_split[1] == "old":
                 case op:
                 of times:
-                    operation = proc (x:BigInt): BigInt = x * x
+                    operation = proc (x:uint): uint = x * x
                 of plus:
-                    operation = proc (x:BigInt): BigInt = x + x
+                    operation = proc (x:uint): uint = x + x
             else:
                 closureScope:
-                    let arg = op_line_split[1].initBigInt
+                    let arg = op_line_split[1].parseUInt
                     case op:
                     of times:
-                        operation = proc (x:BigInt): BigInt = x * arg
+                        operation = proc (x:uint): uint = x * arg
                     of plus:
-                        operation = proc (x:BigInt): BigInt = x + arg
+                        operation = proc (x:uint): uint = x + arg
 
             line = readLine(file)
             assert test_line(line, TEST_LINE)
-            var test: TestFun
-            closureScope:
-                let test_mod = strip_line(line, TEST_LINE).initBigInt
-                test = proc (x: BigInt): bool = x mod test_mod == 0.initBigInt
+            let test_mod = strip_line(line, TEST_LINE).parseUInt
 
             line = readLine(file)
             assert test_line(line, TEST_TRUE_LINE)
-            let true_index = strip_line(line, TEST_TRUE_LINE).parseInt
+            let true_index = strip_line(line, TEST_TRUE_LINE).parseUInt
 
             line = readLine(file)
             assert test_line(line, TEST_FALSE_LINE)
-            let false_index = strip_line(line, TEST_FALSE_LINE).parseInt
+            let false_index = strip_line(line, TEST_FALSE_LINE).parseUInt
 
-            monkeys.add(newMonkey(items, operation, test, true_index, false_index))
+            monkeys.add(newMonkey(items, operation, test_mod, true_index, false_index))
 
 finally:
     file.close()
 
 for monkey in monkeys.items:
-    assert monkey.true_index < len(monkeys)
-    assert monkey.false_index < len(monkeys)
+    assert monkey.true_index < len(monkeys).uint
+    assert monkey.false_index < len(monkeys).uint
 
 var inspect_count = newSeq[int](len(monkeys))
-let print_rounds: auto = [1, 20, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+let print_rounds: auto = [1, 20, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+let item_mod = monkeys.mapIt(it.test_mod).foldl(a*b)
 
 for round_index in 0..<10000:
     for monkey_index, m in monkeys.mpairs:
         while len(m.items) > 0:
-            # Inspect the item
-            let new_item = m.operation(m.items.popFirst())
-            monkeys[if m.test(new_item): m.true_index else: m.false_index].items.addLast(new_item)
+            let new_item = m.operation(m.items.popFirst()) mod item_mod
+            let new_monkey_index = if new_item mod m.test_mod == 0: m.true_index else: m.false_index
+            monkeys[new_monkey_index].items.addLast(new_item)
             inspect_count[monkey_index] += 1
     if round_index+1 in print_rounds:
         echo "After round ", round_index+1, ": ", inspect_count
