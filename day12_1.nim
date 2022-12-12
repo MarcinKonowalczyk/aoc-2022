@@ -23,9 +23,6 @@ func newMatrix[T](W, H: int): Matrix[T, W, H] =
     for i in 0 ..< H:
         result[i].newSeq(W)
 
-func rows[T: untyped, W, H:int](m: Matrix[T, W, H]): int = result = len(m)
-func columns[T: untyped, W, H:int](m: Matrix[T, W, H]): int = result = len(m[0])
-
 func `[]`[T: untyped, W, H:int](m: Matrix[T, W, H], x, y: int): T =
     m[y][x]
 
@@ -113,12 +110,3 @@ if false:
     echo ""
 
 echo distance[top]
-
-
-
-
-
-
-
-
-

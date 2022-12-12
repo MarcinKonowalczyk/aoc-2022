@@ -24,9 +24,6 @@ func newMatrix[T](W, H: int): Matrix[T, W, H] =
     for i in 0 ..< H:
         result[i].newSeq(W)
 
-func rows[T: untyped, W, H:int](m: Matrix[T, W, H]): int = result = len(m)
-func columns[T: untyped, W, H:int](m: Matrix[T, W, H]): int = result = len(m[0])
-
 func `[]`[T: untyped, W, H:int](m: Matrix[T, W, H], x, y: int): T =
     m[y][x]
 
@@ -73,14 +70,6 @@ for i, line in lines:
             assert (c in 'a' .. 'z')
             map[j, i] = ord(c) - CHAR_ORIGIN
 
-import strformat
-
-proc echo(m: Matrix[int, width, height]) =
-    for row in m:
-        for height in row:
-            write(stdout, fmt"{height:2} ")
-        write(stdout, "\n")
-
 iterator getNeighbours(p: Point): Point =
     if p.x > 0:
         yield (p.x - 1, p.y)
@@ -115,12 +104,3 @@ proc hike(start: Point): int =
         result = distance[top]
 
 echo starts.mapIt(hike(it)).min
-
-
-
-
-
-
-
-
-
