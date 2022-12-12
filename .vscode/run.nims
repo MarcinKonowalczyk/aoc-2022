@@ -57,6 +57,7 @@ elif file_parts.ext == ".nim" and file_parts.name[0..<3] == "day":
         rmFile(built_file)
 
     let cmd = "compile --outdir:build " & file
+    # let cmd = "compile -d:release --opt:speed --passC:-flto --passL:-flto --outdir:build " & file
     echo cmd
     selfExec(cmd)
 
