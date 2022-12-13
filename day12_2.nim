@@ -11,7 +11,6 @@ if not fileExists(filename):
 # RUN: FULL
 ## RUN: TEST
 
-import strutils
 import sequtils
 import deques
 
