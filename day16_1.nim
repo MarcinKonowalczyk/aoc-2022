@@ -8,8 +8,8 @@ if not fileExists(filename):
     echo "File not found: ", filename
     quit(1)
 
-# RUN: FULL
-## RUN: TEST
+## RUN: FULL
+# RUN: TEST
 
 import re
 import strutils
@@ -31,7 +31,9 @@ for line in lines(filename):
         tunnels: matches[2].split(", ")
     ))
 
-const START = "AA"
+const
+    START = "AA"
+    TIME_AVAILABLE = 30
 
 block:
     var start = data.filterIt(it.valve == START)
@@ -76,7 +78,7 @@ var order: seq[string] = flow_rates_map.pairs.toSeq.filterIt(it[1] > 0).mapIt(it
 assert order[0] != START
 
 func calc_flow(order: seq[string], flow_rates_map: Table[string, int], distance_map: Table[string, Table[string, int]]): int =
-    var time = 30
+    var time = TIME_AVAILABLE
     for i in 0..<order.len:
         let
             prev = if i > 0: order[i - 1] else: START
@@ -120,7 +122,6 @@ iterator candidates(order: seq[string]): seq[string] =
 
 
 proc find_next_candidate(order: var seq[string], max_flow: var int): bool = 
-    result = false
     for candidate in candidates(order):
         let flow = calc_flow(candidate, flow_rates_map, distance_map)
         if flow > max_flow:
