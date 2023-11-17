@@ -1,6 +1,5 @@
 #!/usr/bin/env nim
 import std/os
-import system/io
 import std/strutils
 import std/sequtils
 
