@@ -131,12 +131,16 @@ proc find_next_candidate(order: var seq[string], max_flow: var int): bool =
             echo "New max flow: ", max_flow, " order: ", order
             break
 
-var max_flow = calc_flow(order, flow_rates_map, distance_map)
-echo "Initial max flow: ", max_flow, " order: ", order
-var swap_counter = 0
-while find_next_candidate(order, max_flow):
-    swap_counter += 1
-    if swap_counter mod 100 == 0:
-        echo "Swaps: ", swap_counter
+proc optimize_flow(order: seq[string]): int =
+    var order_copy = order;
+    var max_flow = calc_flow(order, flow_rates_map, distance_map)
+    echo "Initial max flow: ", max_flow, " order: ", order
+    var swap_counter = 0
+    while find_next_candidate(order_copy, max_flow):
+        swap_counter += 1
+        if swap_counter mod 100 == 0:
+            echo "Swaps: ", swap_counter
+    result = max_flow
 
+let max_flow = optimize_flow(order);
 echo max_flow

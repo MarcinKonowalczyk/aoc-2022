@@ -8,15 +8,17 @@ if not fileExists(filename):
     echo "File not found: ", filename
     quit(1)
 
-## RUN: FULL
-# RUN: TEST
+# RUN: FULL
+## RUN: TEST
 
 import re
 import strutils
 import algorithm
 import tables
 import sequtils
+import strformat
 import deques
+import std/enumerate
 
 var data: seq[tuple[valve: string, flow: int, tunnels: seq[string]]]
 
@@ -34,6 +36,7 @@ for line in lines(filename):
 const
     START = "AA"
     TIME_AVAILABLE = 26
+    # TIME_AVAILABLE = 30
 
 block:
     var start = data.filterIt(it.valve == START)
@@ -74,22 +77,27 @@ let distance_map = block:
     result
 
 # Inital order
-var single_order: seq[string] = flow_rates_map.pairs.toSeq.filterIt(it[1] > 0).mapIt(it[0]).sorted()
-assert single_order[0] != START
+var order: seq[string] = flow_rates_map.pairs.toSeq.filterIt(it[1] > 0).mapIt(it[0]).sorted()
+assert order[0] != START
 
-type
-    Order = tuple[main: seq[string], extra: seq[string]]
+# iterator two_partition(values: seq[string]): (seq[string], seq[string]) =
+    # yield (@[], @[])
 
-var order = block:
-    var result: Order
-    for i, valve in single_order:
-        if (i mod 2).bool:
-            result.extra.add(valve)
+proc two_partition(values: seq[string], depth: int = 0): iterator: (seq[string], seq[string]) =
+    result = iterator: (seq[string], seq[string]) {.closure.} =
+        assert values.len > 1
+
+        if values.len == 2:
+            yield (values[0..0], values[1..1])
         else:
-            result.main.add(valve)
-    result
+            let element = values[0..0]
+            let other_elements = values[1..values.len-1]
+            yield (element, other_elements)
+            for (p1, p2) in two_partition(other_elements, depth = depth + 1):
+                yield (concat(element, p1), p2)
+                yield (concat(element, p2), p1)
 
-func calc_flow_single(order: seq[string], flow_rates_map: Table[string, int], distance_map: Table[string, Table[string, int]]): int =
+func calc_flow(order: seq[string], flow_rates_map: Table[string, int], distance_map: Table[string, Table[string, int]]): int =
     var time = TIME_AVAILABLE
     for i in 0..<order.len:
         let
@@ -97,7 +105,7 @@ func calc_flow_single(order: seq[string], flow_rates_map: Table[string, int], di
             curr = order[i]
             distance = distance_map[prev][curr]
 
-        time -= distance # Move to a valve
+        time -= distance # Move to a vale
         if time < 0: break
         time -= 1 # Open a valve
         let add_flow = time * flow_rates_map[curr]
@@ -106,16 +114,11 @@ func calc_flow_single(order: seq[string], flow_rates_map: Table[string, int], di
 
         # debugecho "prev: ", prev, " curr: ", curr, " distance: ", distance, " time: ", time, " add_flow: ", add_flow
 
-func calc_flow(order: Order, flow_rates_map: Table[string, int], distance_map: Table[string, Table[string, int]]): int =
-    result = calc_flow_single(order.main, flow_rates_map, distance_map)
-    result += calc_flow_single(order.extra, flow_rates_map, distance_map)
 
-iterator candidates_single(order: seq[string]): seq[string] =
+iterator candidates(order: seq[string]): seq[string] =
     # NOTE: I'm not sure this is guaranteed to always find the optimal solution
     #       but it's good enough for this problem. This is equivalent to
     #       2-steps-deep search for pairwis swaps.
-
-    yield order
 
     # Permute elements pairwise
     for i in 0..<order.len:
@@ -131,31 +134,52 @@ iterator candidates_single(order: seq[string]): seq[string] =
                     swap(new_order2[k], new_order2[l])
                     yield new_order2
 
-iterator candidates(order: Order): Order =
-    # First yield from `candidates_single` for individual orders
-    for main in candidates_single(order.main):
-        for extra in candidates_single(order.extra):
-            yield (main: main, extra: extra)
-    
-    # ....
+# echo order
+# for candidate in candidates(order):
+#     echo candidate
 
-    
-proc find_next_candidate(order: var Order, max_flow: var int): bool = 
+# quit(1)
+
+proc find_next_candidate(order: var seq[string], max_flow: var int, verbose: bool = true): bool = 
     for candidate in candidates(order):
         let flow = calc_flow(candidate, flow_rates_map, distance_map)
         if flow > max_flow:
             max_flow = flow
             order = candidate
             result = true
-            echo "New max flow: ", max_flow, " order: ", order
+            if verbose:
+                echo "New max flow: ", max_flow, " order: ", order
             break
 
-var max_flow = calc_flow(order, flow_rates_map, distance_map)
-echo "Initial max flow: ", max_flow, " order: ", order
-var swap_counter = 0
-while find_next_candidate(order, max_flow):
-    swap_counter += 1
-    if swap_counter mod 100 == 0:
-        echo "Swaps: ", swap_counter
+proc optimize_flow(order: seq[string], verbose: bool = true): int =
+    var order_copy = order;
+    var max_flow = calc_flow(order, flow_rates_map, distance_map)
+    if verbose:
+        echo "Initial max flow: ", max_flow, " order: ", order
+    var swap_counter = 0
+    while find_next_candidate(order_copy, max_flow, verbose = verbose):
+        swap_counter += 1
+        if verbose and swap_counter mod 100 == 0:
+            echo "Swaps: ", swap_counter
+    result = max_flow
 
+
+proc count_partitions(values: seq[string]): int =
+    for _ in two_partition(order):
+        result += 1
+
+
+proc optimize_flow_across_partitions(order: seq[string]): int = 
+    let N_partitions = count_partitions(order);
+    for i, (p1, p2) in enumerate(two_partition(order)):
+        if i mod 100 == 0:
+            echo fmt"{i+1}/{N_partitions} ({(i+1)/N_partitions*100:.3f})%";
+        let max_flow_p1 = optimize_flow(p1, verbose=false);
+        let max_flow_p2 = optimize_flow(p2, verbose=false);
+        let max_flow = max_flow_p1 + max_flow_p2;
+        if max_flow > result:
+            echo "New max flow: ", max_flow, " for p1: ", p1, ", p2: ", p2
+            result = max_flow;
+
+let max_flow = optimize_flow_across_partitions(order);
 echo max_flow
